@@ -78,7 +78,12 @@ tasks.register("buildApp") {
     val distDir = layout.buildDirectory.dir("dist/js/productionExecutable")
     val buildTimestamp: String by extra { System.currentTimeMillis().toString() }
 
+    val myParam = project.findProperty("myParam")?.toString() ?: "default"
+    inputs.property("myParam", myParam)
+
     doLast {
+        println("Параметр: $myParam")
+
         val dist = distDir.get().asFile
         if (!dist.exists()) {
             throw GradleException("Distribution directory not found: $distDir")
@@ -95,7 +100,7 @@ tasks.register("buildApp") {
         targetDir.mkdirs()
 
         dist.listFiles()
-            ?.filter { it.isFile && (it.name.startsWith("composeApp") || it.name.startsWith("skiko")) }
+            ?.filter { it.isFile && (it.name.startsWith("composeApp") || it.name.startsWith("skiko")) || it.name.endsWith(".wasm") }
             ?.forEach { file ->
                 file.copyTo(File(targetDir, file.name), overwrite = true)
                 file.delete()
@@ -125,8 +130,8 @@ tasks.register("buildApp") {
 
         val newComposeAppContent = composeAppFile.readText()
             .replace(
-                "composeResources/recomposition_visualization.composeapp.generated.resources/",
-                "$newComposeResourcesDirName/recomposition_visualization.composeapp.generated.resources/",
+                "composeResources/multiplatform_app.composeapp.generated.resources/",
+                "$newComposeResourcesDirName/multiplatform_app.composeapp.generated.resources/",
             )
         composeAppFile.writeText(newComposeAppContent)
     }
