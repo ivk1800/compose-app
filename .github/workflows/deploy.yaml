@@ -1,11 +1,8 @@
 # Workflow for deploying WasmJS App to GitHub Pages
 name: Deploy App to GitHub Pages
 
-#on:
-#  push:
-#    branches:
-#      - main  # Trigger the workflow on pushes to the main branch
-#  workflow_dispatch:  # Allow manual triggering
+on:
+  workflow_dispatch:
 
 permissions:
   contents: read  # Required to fetch the repository content
