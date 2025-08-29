@@ -33,7 +33,7 @@ jobs:
 
       # 4. Build the WasmJS App
       - name: "🛠️ Build App"
-        run: gradle :composeApp:buildApp
+        run: gradle :composeApp:buildApp -PmetrikaId=$METRIKA_ID
 
       # 5. Set up GitHub Pages
       - name: "📄 Configure GitHub Pages"

@@ -77,13 +77,9 @@ tasks.register("buildApp") {
 
     val distDir = layout.buildDirectory.dir("dist/js/productionExecutable")
     val buildTimestamp: String by extra { System.currentTimeMillis().toString() }
-
-    val myParam = project.findProperty("myParam")?.toString() ?: "default"
-    inputs.property("myParam", myParam)
+    val metrikaIdProvider = project.providers.gradleProperty("metrikaId").orElse("")
 
     doLast {
-        println("Параметр: $myParam")
-
         val dist = distDir.get().asFile
         if (!dist.exists()) {
             throw GradleException("Distribution directory not found: $distDir")
@@ -100,7 +96,10 @@ tasks.register("buildApp") {
         targetDir.mkdirs()
 
         dist.listFiles()
-            ?.filter { it.isFile && (it.name.startsWith("composeApp") || it.name.startsWith("skiko")) || it.name.endsWith(".wasm") }
+            ?.filter {
+                it.isFile && (it.name.startsWith("composeApp") || it.name.startsWith("skiko")) ||
+                        it.name.endsWith(".wasm")
+            }
             ?.forEach { file ->
                 file.copyTo(File(targetDir, file.name), overwrite = true)
                 file.delete()
@@ -120,6 +119,30 @@ tasks.register("buildApp") {
                 """<script\s+src=["']skiko\.js["']></script>""".toRegex(),
                 """<script src="$buildTimestamp/skiko.js"></script>""",
             )
+            .run {
+                val metrikaId = metrikaIdProvider.get()
+                if (metrikaId.isNotBlank()) {
+                    val metrikaCounter = """
+            <!-- Yandex.Metrika counter -->
+            <script type="text/javascript">
+                (function(m,e,t,r,i,k,a){
+                    m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+                    m[i].l=1*new Date();
+                    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+                    k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+                })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=${metrikaId}', 'ym');
+
+                ym(${metrikaId}, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
+            </script>
+            <noscript><div><img src="https://mc.yandex.ru/watch/${metrikaId}" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+            <!-- /Yandex.Metrika counter -->
+    """.trimIndent()
+
+                    replace("<!--METRIKA_PLACEHODLER-->", metrikaCounter)
+                } else {
+                    this
+                }
+            }
 
         index.writeText(updatedIndex)
 
