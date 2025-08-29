@@ -17,6 +17,11 @@ kotlin {
         binaries.executable()
     }
 
+    wasmJs {
+        browser()
+        binaries.executable()
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)
