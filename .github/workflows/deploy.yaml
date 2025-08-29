@@ -29,7 +29,7 @@ jobs:
           gradle-version: 9.0.0
 
       - name: "🛠️ Build App"
-        run: gradle :composeApp:buildApp -PmetrikaId=$METRIKA_ID
+        run: gradle :composeApp:buildApp
 
       - name: "📄 Configure GitHub Pages"
         uses: actions/configure-pages@v5
